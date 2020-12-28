@@ -5,6 +5,7 @@ import shutil
 import pandas as pd
 import sys
 import pdb
+from datetime import date
 FTP_HOST = "talend.ecolotrans.net"
 FTP_USER = "talend"
 FTP_PASS = "Rand069845"
@@ -13,9 +14,9 @@ ftp = ftplib.FTP(FTP_HOST, FTP_USER, FTP_PASS)
 # force UTF-8 encoding
 ftp.encoding = "utf-8"
 
-nom_de_fichier = sys.argv[1]
+#nom_de_fichier = sys.argv[1]
 #pdb.set_trace()
-print(nom_de_fichier)
+#print(nom_de_fichier)
 ftp.cwd('/Preprod/IN/POC_ON_DEMAND/INPUT/ClientInput')
 
 clients = ftp.nlst()
@@ -42,17 +43,17 @@ for client in clients:
             os.remove(file_name)
             #shutil.move(file_name, "ClientInput/"+ client)
 path_racine = 'ClientInput'
-filename_rech = nom_de_fichier + '_EDI.xlsx'
+#filename_rech = nom_de_fichier + '_EDI.xlsx'
 mergedData = pd.DataFrame()
 for client in os.listdir(path_racine):
     path_client = path_racine + '/' + client
     for file in os.listdir(path_client):
-        if file == filename_rech:
-            path_file = path_client + '/' + file
-            print(path_file)
-            data = pd.read_excel(path_file, index_col=None)
-            mergedData = mergedData.append(data)
-            print("ahmed")
+        #if file == filename_rech:
+        path_file = path_client + '/' + file
+        print(path_file)
+        data = pd.read_excel(path_file, index_col=None)
+        mergedData = mergedData.append(data)
+        print("ahmed")
 print(mergedData)
 liste_index= []
 for i in range(len(mergedData.index)):
@@ -60,10 +61,11 @@ for i in range(len(mergedData.index)):
 mergedData.index = liste_index
 print(mergedData)
 if mergedData.empty == False:
-    mergedData.to_excel(filename_rech)
+    now = date.today()
+    file_name = now.strftime('%d_%m_%y') + '_EDI.xlsx'
+    mergedData.to_excel(file_name)
     ftp.cwd('/Preprod/IN/POC_ON_DEMAND/INPUT/TalendInput')
-    file_name = nom_de_fichier + '_EDI.xlsx'
     print(file_name)
     with open (file_name, 'rb') as file:
         ftp.storbinary('STOR {}'.format(file_name), file)
-    os.remove(filename_rech)
+    os.remove(file_name)
